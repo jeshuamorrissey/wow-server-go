@@ -13,6 +13,7 @@ go_test(
     deps = [
         ":packet_spec",
         "@com_github_alecthomas_participle//:go_default_library",
+        "@com_github_davecgh_go_spew//spew:go_default_library",
         "@com_github_stretchr_testify//assert:go_default_library",
     ],
 )
