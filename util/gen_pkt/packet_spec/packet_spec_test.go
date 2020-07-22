@@ -50,6 +50,26 @@ func parsePacketSpec(t *testing.T, packetSpec string) *packet_spec.PacketSpec {
 
 func TestSingleComplexPacket(t *testing.T) {
 	spec := parsePacketSpec(t, `
+enum Error {
+	OK = 0x00
+	FAILED_1 = 0x01
+	FAILED_2 = 0x02
+	BANNED = 0x03
+	UNKNOWN_ACCOUNT = 0x04
+	UNKNOWN_ACCOUNT_3 = 0x05
+	ALREADYONLINE = 0x06
+	NOTIME = 0x07
+	DBBUSY = 0x08
+	BADVERSION = 0x09
+	DOWNLOAD_FILE = 0x0A
+	FAILED_3 = 0x0B
+	SUSPENDED = 0x0C
+	FAILED_4 = 0x0D
+	CONNECTED = 0x0E
+	PARENTAL_CONTROL = 0x0F
+	LOCKED_ENFORCED = 0x10
+}
+
 packet ClientLoginChallenge {
 	string[4] game_name
 	int8 version[3]
@@ -66,18 +86,16 @@ packet ServerLoginChallenge {
     int8 unk
 	Error error
 
-	if (error is Error.OK) {
-		struct challenge {
-			bigint[32] B
-			int8 g_len
-			int8 g
-			int8 N_len
-			bigint[32] N
-			bigint[32] salt
-			bigint[16] crc_salt
-			int8 unk = 0
-		}
-	}
+	struct challenge {
+		bigint[32] B
+		int8 g_len
+		int8 g
+		int8 N_len
+		bigint[32] N
+		bigint[32] salt
+		bigint[16] crc_salt
+		int8 unk = 0
+	} if (error is Error.OK)
 }
 `)
 

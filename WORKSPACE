@@ -92,3 +92,15 @@ go_repository(
     sum = "h1:tQIYjPdBoyREyB9XMu+nnTclpTYkz2zFM+lzLJFO4gQ=",
     version = "v3.0.0-20200615113413-eeeca48fe776",
 )
+
+go_repository(
+    name = "com_github_dave_jennifer",
+    importpath = "github.com/dave/jennifer",
+    tag = "v1.4.0",
+)
+
+go_repository(
+    name = "com_github_achiku_varfmt",
+    commit = "master",
+    importpath = "github.com/achiku/varfmt",
+)
