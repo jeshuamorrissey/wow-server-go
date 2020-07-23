@@ -66,6 +66,50 @@ func loadEntries(entries []*packet_spec.PacketEntry) ([]jen.Code, error) {
 	return structFields, nil
 }
 
+func genGoEncodeEntries(entries []*packet_spec.PacketEntry) ([]jen.Code, error) {
+	statements := []jen.Code{}
+
+	for _, entry := range entries {
+		if entry.Field != nil {
+			// switch based on type
+		} else if entry.Struct != nil {
+			structStatements, err := genGoEncodeEntries(entry.Struct.Entries)
+			if err != nil {
+				return nil, err
+			}
+
+			statements = append(statements, structStatements...)
+		}
+	}
+
+	return statements, nil
+}
+
+func genGoEncodeFn(packet *packet_spec.Packet, goFile *jen.File) error {
+	// Generate a list of code statements to write the packet to a binary buffer.
+	statements := []jen.Code{
+		jen.Id("buffer").Op(":=").New(jen.Qual("bytes", "Buffer")),
+	}
+
+	encodeStatements, err := genGoEncodeEntries(packet.Entries)
+	if err != nil {
+		return err
+	}
+
+	// Return statement.
+	statements = append(statements, encodeStatements...)
+	statements = append(statements, jen.Return(jen.Id("buffer").Dot("Bytes").Call(), jen.Nil()))
+
+	fn := goFile.Func()
+	fn.Params(jen.Id("pkt").Op("*").Id(packet.Name)) // the method params list
+	fn.Id("Encode")                                  // the method name
+	fn.Params()                                      // the method arguments (none)
+	fn.Params(jen.Index().Byte(), jen.Error())       // the method return values
+	fn.Block(statements...)                          // the method statements
+
+	return nil
+}
+
 func genGoFile(parser *participle.Parser, packetFilePath string) error {
 	f, err := os.Open(packetFilePath)
 	if err != nil {
@@ -102,10 +146,12 @@ func genGoFile(parser *participle.Parser, packetFilePath string) error {
 			goFile.Type().Add(jen.Id(s.Packet.Name), jen.Struct(structFields...))
 
 			// Add a method to create a new packet. This should also set defaults (if appropriate).
-			// TODO
+			err = genGoEncodeFn(s.Packet, goFile)
+			if err != nil {
+				return err
+			}
 
 			// Add a function to take the struct and produce a binary blob.
-			// TODO
 
 			// Add a function to take a binary blob and produce a struct.
 			// TODO
